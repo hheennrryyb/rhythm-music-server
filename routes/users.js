@@ -1,116 +1,73 @@
+const User = require('../models/userModel')
 const express = require('express')
+const mongoose = require('mongoose')
 const router = express.Router()
-const fs = require('fs');
+const {
+    createUser,
+    getUser,
+    getUsers,
+    deleteUser,
+    updateUser,
+} = require('../controllers/userController');
+
 const { v4: uuidv4 } = require('uuid');
 
 
-router.use(express.json());
+// router.use(express.json());
 
-function loadData(callback) {
-    fs.readFile('./data/userData.json', 'utf8', callback)
-}
+// //Post New User
+router.post('/', createUser)
 
-function saveData(data) {
-    fs.writeFile(`./data/userData.json`, data, (err) => {
-        if (err) {
-            console.error(err)
-        }
-    })
-}
+// // //Get All Users
+router.get('/', getUsers);
 
-// router.get('/', (req, res) => {
-//     res.send('working again')
-// })
+// // //Get User By ID
+router.get('/:id', getUser);
 
-router.get('/', (req, res) => {
-    loadData((err, data) => {
-        if (err) {
-            res.send('Theres been an error requesting data')
-        } else {
-            const users = JSON.parse(data)
-            res.status(200).json(users);
-        }
-    })
-});
+router.delete('/:id', deleteUser)
 
-router.get('/:id', (req, res) => {
-    loadData((err, data) => {
-        if (err) {
-            res.send('Theres been an error requesting data')
-        } else {
-            const users = JSON.parse(data)
-            const selectedUser = users.find((user) => user.id == req.params.id)
-            res.status(200).json(selectedUser);
-        }
-    })
-});
+router.patch('/:id', updateUser)
 
-router.post('/', (req, res) => {
-
-    loadData((err, data) => {
-        if (err) {
-            res.send('Theres been an error requesting data')
-        } else {
-            const parsedData = JSON.parse(data)
-
-            const newUser = {
-                userId: uuidv4(),
-                userName: req.body.userName,
-                // channel: req.body.channel,
-                // timestamp: Date.now(),
-                savedPlaylists: []
-            }
-
-            parsedData.push(newUser)
-            saveData(JSON.stringify(parsedData))
-            res.status(201).send(`User has been added`)
-        }
-    })
+router.post('/:id/playlist', async (req, res) => {
+    // const { userName } = req.body
+    const {id} = req.params
+    const newPlaylist = {
+        // playlistId: uuidv4(), 
+        playlistName: req.body.playlistName,
+        description: req.body.description,
+        // timestamp: Date.now(),
+        songsData: []
+    }
+    User.findOneAndUpdate(
+        { _id: id }, 
+        { $push: { savedPlaylists: newPlaylist  } },
+       function (error, success) {
+             if (error) {
+                 console.log(error);
+             } else {
+                 console.log(success);
+             }
+         });
+     
+        res.status(201).json(newPlaylist)
 })
 
-router.post('/:userId/playlist', (req, res) => {
-    loadData((err, data) => {
-        if (err) {
-            res.send('Theres been an error requesting data')
-        } else {
-
-            const parsedData = JSON.parse(data)
-            const selectedUser = parsedData.find((user) => user.userId == req.params.userId)
-
-            const newPlaylist = {
-                playlistId: uuidv4(),
-                playlistName: req.body.name,
-                description: req.body.description,
-                timestamp: Date.now(),
-                songsData: []
+router.post('/:userId/:playlistId', async (req, res) => {
+    const {userId} = req.params
+    const {playlistId} = req.params
+    const newSongData = {...req.body}
+            // const parsedData = JSON.parse(data)
+        const selectedUser = await User.findOne({ _id: userId });
+        const playlists = [...selectedUser.toObject().savedPlaylists]
+        const updatePlaylists = playlists.map(playlist => {
+            if (playlist._id.toString() === playlistId) {
+                playlist.songsData === undefined? playlist.songsData = [newSongData] : playlist.songsData.push(newSongData)
             }
-            selectedUser.savedPlaylists.push(newPlaylist)
-
-            saveData(JSON.stringify(parsedData))
-            res.status(201).send(newPlaylist);
-        }
-    })
-})
-
-router.post('/:userId/:playlistId', (req, res) => {
-    loadData((err, data) => {
-        if (err) {
-            res.send('Theres been an error requesting data')
-        } else {
-
-            const parsedData = JSON.parse(data)
-            const selectedUser = parsedData.find((user) => user.userId == req.params.userId)
-            
-            const selectedPlaylist = selectedUser.savedPlaylists.find((playlist) => playlist.playlistId == req.params.playlistId)
-
-            const newSongData = req.body.song
-
-            selectedPlaylist.songsData.push(newSongData)
-
-            saveData(JSON.stringify(parsedData))
-            res.status(201).send(newSongData);
-        }
-    })
+            return playlist
+        });
+        console.log(updatePlaylists);
+        const update = await User.updateOne({_id: userId}, {savedPlaylists: updatePlaylists});
+            res.status(201).json(update)
 })
 
 module.exports = router
