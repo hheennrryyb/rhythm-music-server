@@ -28,6 +28,7 @@ router.delete('/:id', deleteUser)
 
 router.patch('/:id', updateUser)
 
+//Post new Playlist
 router.post('/:id/playlist', async (req, res) => {
     // const { userName } = req.body
     const {id} = req.params
@@ -52,6 +53,7 @@ router.post('/:id/playlist', async (req, res) => {
         res.status(201).json(newPlaylist)
 })
 
+//Post New Song Given Playlist ID
 router.post('/:userId/:playlistId', async (req, res) => {
     const {userId} = req.params
     const {playlistId} = req.params
@@ -69,6 +71,47 @@ router.post('/:userId/:playlistId', async (req, res) => {
         const update = await User.updateOne({_id: userId}, {savedPlaylists: updatePlaylists});
             res.status(201).json(update)
 })
+
+//Delete Whole Playlist Given ID Params
+router.delete('/:userId/:playlistId', async (req, res) => {
+    const {userId} = req.params
+    const {playlistId} = req.params
+    // const newSongData = {...req.body}
+            // const parsedData = JSON.parse(data)
+        const selectedUser = await User.findOne({ _id: userId });
+        const playlists = [...selectedUser.toObject().savedPlaylists]
+        // const selectedPlaylist= playlists._id.find((id)=> id)
+        const findPlaylist = playlists.find((playlist) => playlist._id.toString() === playlistId)
+        console.log(playlists.indexOf(findPlaylist))
+        const updatePlaylists = playlists.splice(playlists.indexOf(findPlaylist),1)
+        // console.log(updatePlaylists);
+        const update = await User.updateOne({_id: userId}, {savedPlaylists: playlists});
+            res.status(201).json(updatePlaylists)
+})
+
+//delete song from playlist 
+router.delete('/:userId/:playlistId/:songId', async (req, res) => {
+    const {userId} = req.params
+    const {playlistId} = req.params
+    const {songId} = req.params
+    // const newSongData = {...req.body}
+            // const parsedData = JSON.parse(data)
+        const selectedUser = await User.findOne({ _id: userId });
+        const playlists = [...selectedUser.toObject().savedPlaylists]
+        // const selectedPlaylist= playlists._id.find((id)=> id)
+        const findPlaylist = playlists.find((playlist) => playlist._id.toString() === playlistId)
+        const findSong = findPlaylist.songsData.find((song) => song.key.toString() === songId)
+        console.log(findPlaylist.songsData[0].key)
+        // console.log(playlists.indexOf(findSong))
+        console.log(findSong.key.toString())
+        // console.log(findPlaylist.songsData)
+        const updateSongsData = findPlaylist.songsData.splice(findPlaylist.songsData.indexOf(findSong),1)
+        // console.log(updateSongsData);
+        const update = await User.updateOne({_id: userId}, {savedPlaylists: playlists});
+            res.status(201).json(updateSongsData)
+})
+
+
 
 module.exports = router
 
