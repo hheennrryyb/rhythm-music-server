@@ -49,8 +49,9 @@ router.post('/:id/playlist', async (req, res) => {
                  console.log(success);
              }
          });
-     
-        res.status(201).json(newPlaylist)
+        // console.log(user.select())
+        const data = await User.findOne({_id: id})
+        res.status(201).json(data.savedPlaylists)
 })
 
 //Post New Song Given Playlist ID
@@ -71,6 +72,20 @@ router.post('/:userId/:playlistId', async (req, res) => {
         const update = await User.updateOne({_id: userId}, {savedPlaylists: updatePlaylists});
             res.status(201).json(update)
 })
+//Get Playlist Data
+router.get('/:userId/:playlistId', async (req, res) => {
+    const {userId} = req.params
+    const {playlistId} = req.params
+            // const parsedData = JSON.parse(data)
+        const selectedUser = await User.findOne({ _id: userId });
+        const playlists = [...selectedUser.toObject().savedPlaylists]
+        const findPlaylist = playlists.find((playlist) => playlist._id.toString() === playlistId)
+
+        // const update = await User.updateOne({_id: userId}, {savedPlaylists: updatePlaylists});
+        console.log(userId)
+        console.log(playlistId)
+            res.status(201).json(findPlaylist)
+})
 
 //Delete Whole Playlist Given ID Params
 router.delete('/:userId/:playlistId', async (req, res) => {
@@ -86,7 +101,10 @@ router.delete('/:userId/:playlistId', async (req, res) => {
         const updatePlaylists = playlists.splice(playlists.indexOf(findPlaylist),1)
         // console.log(updatePlaylists);
         const update = await User.updateOne({_id: userId}, {savedPlaylists: playlists});
-            res.status(201).json(updatePlaylists)
+            // res.status(201).json(updatePlaylists)
+
+            const data = await User.findOne({_id: userId})
+            res.status(201).json(data.savedPlaylists)
 })
 
 //delete song from playlist 
@@ -100,7 +118,7 @@ router.delete('/:userId/:playlistId/:songId', async (req, res) => {
         const playlists = [...selectedUser.toObject().savedPlaylists]
         // const selectedPlaylist= playlists._id.find((id)=> id)
         const findPlaylist = playlists.find((playlist) => playlist._id.toString() === playlistId)
-        const findSong = findPlaylist.songsData.find((song) => song.key.toString() === songId)
+        const findSong = findPlaylist.songsData.find((song) => song.key === songId)
         console.log(findPlaylist.songsData[0].key)
         // console.log(playlists.indexOf(findSong))
         console.log(findSong.key.toString())
