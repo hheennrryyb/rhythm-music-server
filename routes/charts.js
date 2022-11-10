@@ -31,7 +31,7 @@ router.post('/', async (req, res) => {
 })
 //post data to Genre 
 router.post('/:id/data', async (req, res) => {
-    // const { userName } = req.body
+
     const { id } = req.params
     const newChartData = req.body
     ChartsByGenre.findOneAndUpdate(

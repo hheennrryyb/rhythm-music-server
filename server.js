@@ -9,6 +9,7 @@ const app = express()
 const cors = require('cors');
 const mongoose = require('mongoose')
 const bodyParser = require('body-parser');
+const jsonwebtoken = require("jsonwebtoken");
 
 const PORT = process.env.PORT || 8080;
 
@@ -21,24 +22,26 @@ app.use(express.json());
 app.use(express.static('public'));
 app.use(cors());
 
-app.use('/users', users);
-app.use('/charts', charts);
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
 
+app.use(function(req, res, next) {
+    if (req.headers && req.headers.authorization && req.headers.authorization.split(' ')[0] === 'JWT') {
+      jsonwebtoken.verify(req.headers.authorization.split(' ')[1], 'RESTFULAPIs', function(err, decode) {
+        if (err) req.user = undefined;
+        req.user = decode;
+        next();
+      });
+    } else {
+      
+      req.user = undefined;
+      next();
+    }
+  });
 
 app.use((req, res, next) => {
     console.log(`Incoming Request ${req.originalUrl}`)
     next();
-});
-
-app.use((req, res, next) => {
-    if (
-        req.method === 'POST' &&
-        req.headers['content-type'] !== 'application/json'
-    ) {
-        res.send('Please Provide JSON data');
-    } else {
-        next();
-    }
 });
 
 //connect to mongoose
@@ -55,5 +58,9 @@ mongoose.connect(process.env.MONGO_URI)
 app.get('/', (req, res) => {
     res.send('API')
 })
+
+app.use('/users', users);
+app.use('/charts', charts);
+
 
 
