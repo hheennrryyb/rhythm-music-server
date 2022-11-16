@@ -4,6 +4,7 @@ const mongoose = require('mongoose')
 const router = express.Router()
 const {
     getUsers,
+    getUser,
     deleteUser,
     updateUser,
     register,
@@ -17,7 +18,7 @@ const { v4: uuidv4 } = require('uuid');
 
 // todoList Routes
 router.route('/profile')
-    .post(loginRequired, profile);
+    .post( loginRequired, profile);
 router.route('/auth/register')
     .post(register);
 router.route('/auth/signin')
@@ -33,7 +34,7 @@ router.route('/auth/signin')
 router.get('/', getUsers);
 
 // // //Get User By ID
-// router.get('/:id', getUser);
+router.get('/:id', getUser);
 
 router.delete('/:id', deleteUser)
 
@@ -93,8 +94,6 @@ router.get('/:userId/:playlistId', async (req, res) => {
     const findPlaylist = playlists.find((playlist) => playlist._id.toString() === playlistId)
 
     // const update = await User.updateOne({_id: userId}, {savedPlaylists: updatePlaylists});
-    console.log(userId)
-    console.log(playlistId)
     res.status(201).json(findPlaylist)
 })
 

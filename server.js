@@ -2,6 +2,7 @@ require('dotenv').config({ path: './config.env' });
 
 const users = require('./routes/users')
 const charts = require('./routes/charts')
+const sharePlaylist = require('./routes/sharePlaylist')
 
 const express = require('express')
 const app = express()
@@ -38,6 +39,7 @@ app.use(function(req, res, next) {
       next();
     }
   });
+  
 
 app.use((req, res, next) => {
     console.log(`Incoming Request ${req.originalUrl}`)
@@ -56,11 +58,13 @@ mongoose.connect(process.env.MONGO_URI)
     })
 
 app.get('/', (req, res) => {
-    res.send('API')
+    res.send('Rhythm API')
 })
 
 app.use('/users', users);
 app.use('/charts', charts);
+app.use('/sharePlaylist', sharePlaylist);
+
 
 
 
