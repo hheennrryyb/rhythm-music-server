@@ -7,7 +7,6 @@ const bcrypt = require('bcrypt');
 const register = async (req, res) => {
   const userFound = await User.findOne({ username: req.body.username })
   if (userFound === null) {
-    console.log(req.body)
     const newUser = new User(req.body);
     newUser.hash_password = bcrypt.hashSync(req.body.password, 10);
     newUser.save(function (err, user) {
@@ -22,7 +21,7 @@ const register = async (req, res) => {
       }
     });
   } else {
-    return res.status(400).json({ message: "Username already taken" })
+    return res.status(208).send("Username already taken")
   }
 }
 

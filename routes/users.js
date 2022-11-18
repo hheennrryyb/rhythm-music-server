@@ -45,10 +45,8 @@ router.post('/:id/playlist', async (req, res) => {
 
     const { id } = req.params
     const newPlaylist = {
-        // playlistId: uuidv4(), 
         playlistName: req.body.playlistName,
         description: req.body.description,
-        // timestamp: Date.now(),
         songsData: []
     }
     User.findOneAndUpdate(
@@ -61,7 +59,6 @@ router.post('/:id/playlist', async (req, res) => {
                 console.log(success);
             }
         });
-    // console.log(user.select())
     const data = await User.findOne({ _id: id })
     res.status(201).json(data.savedPlaylists)
 })
@@ -71,7 +68,7 @@ router.post('/:userId/:playlistId', async (req, res) => {
     const { userId } = req.params
     const { playlistId } = req.params
     const newSongData = { ...req.body }
-    // const parsedData = JSON.parse(data)
+
     const selectedUser = await User.findOne({ _id: userId });
     const playlists = [...selectedUser.toObject().savedPlaylists]
     const updatePlaylists = playlists.map(playlist => {
@@ -80,7 +77,6 @@ router.post('/:userId/:playlistId', async (req, res) => {
         }
         return playlist
     });
-    console.log(updatePlaylists);
     const update = await User.updateOne({ _id: userId }, { savedPlaylists: updatePlaylists });
     res.status(201).json(update)
 })
@@ -88,12 +84,11 @@ router.post('/:userId/:playlistId', async (req, res) => {
 router.get('/:userId/:playlistId', async (req, res) => {
     const { userId } = req.params
     const { playlistId } = req.params
-    // const parsedData = JSON.parse(data)
+
     const selectedUser = await User.findOne({ _id: userId });
     const playlists = [...selectedUser.toObject().savedPlaylists]
     const findPlaylist = playlists.find((playlist) => playlist._id.toString() === playlistId)
 
-    // const update = await User.updateOne({_id: userId}, {savedPlaylists: updatePlaylists});
     res.status(201).json(findPlaylist)
 })
 
@@ -101,17 +96,13 @@ router.get('/:userId/:playlistId', async (req, res) => {
 router.delete('/:userId/:playlistId', async (req, res) => {
     const { userId } = req.params
     const { playlistId } = req.params
-    // const newSongData = {...req.body}
-    // const parsedData = JSON.parse(data)
+
     const selectedUser = await User.findOne({ _id: userId });
     const playlists = [...selectedUser.toObject().savedPlaylists]
-    // const selectedPlaylist= playlists._id.find((id)=> id)
+
     const findPlaylist = playlists.find((playlist) => playlist._id.toString() === playlistId)
-    console.log(playlists.indexOf(findPlaylist))
     const updatePlaylists = playlists.splice(playlists.indexOf(findPlaylist), 1)
-    // console.log(updatePlaylists);
     const update = await User.updateOne({ _id: userId }, { savedPlaylists: playlists });
-    // res.status(201).json(updatePlaylists)
 
     const data = await User.findOne({ _id: userId })
     res.status(201).json(data.savedPlaylists)
@@ -122,21 +113,32 @@ router.delete('/:userId/:playlistId/:songId', async (req, res) => {
     const { userId } = req.params
     const { playlistId } = req.params
     const { songId } = req.params
-    // const newSongData = {...req.body}
-    // const parsedData = JSON.parse(data)
+
     const selectedUser = await User.findOne({ _id: userId });
     const playlists = [...selectedUser.toObject().savedPlaylists]
-    // const selectedPlaylist= playlists._id.find((id)=> id)
+
     const findPlaylist = playlists.find((playlist) => playlist._id.toString() === playlistId)
     const findSong = findPlaylist.songsData.find((song) => song.key === songId)
-    console.log(findPlaylist.songsData[0].key)
-    // console.log(playlists.indexOf(findSong))
-    console.log(findSong.key.toString())
-    // console.log(findPlaylist.songsData)
+
     const updateSongsData = findPlaylist.songsData.splice(findPlaylist.songsData.indexOf(findSong), 1)
-    // console.log(updateSongsData);
+
     const update = await User.updateOne({ _id: userId }, { savedPlaylists: playlists });
     res.status(201).json(updateSongsData)
+})
+
+  router.patch('/:userId/:playlistId', async (req, res) => {
+    const { userId } = req.params
+    const { playlistId } = req.params
+
+    const selectedUser = await User.findOne({ _id: userId });
+    const playlists = [...selectedUser.toObject().savedPlaylists]
+    let foundPlaylist = await playlists.find((playlist) => playlist._id.toString() === playlistId)
+    
+    foundPlaylist.playlistName = req.body.playlistName
+    foundPlaylist.description = req.body.description
+    
+    const update = await User.updateOne({_id: userId}, {savedPlaylists: playlists});
+    res.status(201).json(update)
 })
 
 

@@ -35,23 +35,5 @@ router.post('/create', async (req, res) => {
         res.status(400).json({ error: error.message })
     }
 })
-//post data  
-// router.post('/:id/data', async (req, res) => {
-
-//     const { id } = req.params
-//     const newChartData = req.body
-//     SharePlaylist.findOneAndUpdate(
-//         { _id: id },
-//         { $set: { chartGenreData: newChartData } },
-//         function (error, success) {
-//             if (error) {
-//                 console.log(error);
-//             } else {
-//                 console.log(success);
-//             }
-//         });
-
-//     res.status(201).json(newChartData)
-// })
 
 module.exports = router;
